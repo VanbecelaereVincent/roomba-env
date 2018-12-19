@@ -2,6 +2,7 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 import numpy as np
+from gym.envs.classic_control import rendering
 
 
 class RoombaEnv(gym.Env):
@@ -12,9 +13,13 @@ class RoombaEnv(gym.Env):
 
 
     #nog een 5e niet zo straight forward actie toevoegd: robot mag blijven staan (="S")
-    ACTION = ["F", "B", "L", "R", "S"]
 
     def __init__(self):
+
+
+        self.ACTION = ["F", "B", "L", "R", "S"]
+
+        self.roombas = ["enemy", "friendly"]
 
         self.viewer = None
 
@@ -24,8 +29,8 @@ class RoombaEnv(gym.Env):
         self.min_position_y = 100
         self.max_position_y = 600
 
-        self.current_position_enemy = [350,350]
-        self.current_position_friendly = [350,100]
+        self.state_enemy = [350,350]
+        self.state_friendly = [350,100]
 
         #deze zal ik moeten instellen naar helemaal bovenaan (dus y zoveel, x mag omheteven wat zijn)
         self.goal_position_friendly = ["mag alles zijn", 600]
@@ -41,7 +46,6 @@ class RoombaEnv(gym.Env):
 
         #dit is een specifieke observatie van het spel die ik terug geef bij het nemen van een step
         #ik veronderstel dat dit bij mij de positie van de roombas zal zijn
-        self.observation = None
 
         #van de enemy is dit steeds de positie waar de andere staat natuurlijk
 
@@ -52,12 +56,11 @@ class RoombaEnv(gym.Env):
 
 
         #de reward die de agent krijgt voor de stap
+        #reward: bijvoorbeeld voor 50% hoe dicht hij bij de overkant graakt, voor 50% hoe dicht hij bij de andere geraakt?
         self.reward = 0.0
 
 
-
-
-        self.render(mode="human")
+        self.render()
 
 
     #zodat de gebruiker die acties kan opvragen
@@ -66,13 +69,31 @@ class RoombaEnv(gym.Env):
         return self.ACTION
 
 
+
+    #zodat de gebruiker de roombas kan opvragen die hij moet meegeven bij de step function
+    def roombas(self):
+
+        return self.roombas
+
+
+
     #wat zet ik hier in? gebruiker zou moeten de observation space terug krijgen
     def observation_space(self):
 
         pass
 
+    #hier misschien kijken of ze tegen eklaar rijden en bool terug geven?
+    def collision(self):
 
-    def step(self,action):
+        pass
+
+
+    def _check_done(self):
+
+        self.done = bool(self.state_friendly[1] == 600 or self.state_enemy == self.state_friendly)
+        return self.done
+
+    def step(self,action, agent):
 
         #deze code is voor stappen per 50 (dan ziet het er niet uit alsof hij rijdt)
         # if(action == "F"):
@@ -106,7 +127,6 @@ class RoombaEnv(gym.Env):
         # opmerking: nog eens checken of mijn checks juist zijn (hij mag niet uit het environment rijden, heb het gevoel van niet)
 
 
-        # opmerking: nog eens checken of mijn checks juist zijn (hij mag niet uit het environment rijden, heb het gevoel van niet)
         # opmerking: moet ik hier ook checken of de positie van de roomba_enemy dezelfde is als die van de gewone?
         #komt dit in mijn else?
 
@@ -117,77 +137,175 @@ class RoombaEnv(gym.Env):
 
 
 
-        if (action == "F"):
-            if (self.current_position_enemy[1] + 50 <= self.max_position_y):
-                index = 0
-                while index < 50:
-                    self.current_position_enemy[1] +=1
-                    self.render(mode="human")
-                    index +=1
+        #first check which roomba, then which action
 
-            else:
-                # opmerking moet ik hier ook iets doen zodat de reward naar 0 Gaat ofzo en hij dus niet achteruit zal gaan??
-                pass
+        if(agent == "enemy"):
 
-        elif (action == "B"):
-            if (self.current_position_enemy[1] - 50 >= self.min_position_y):
+            if (action == "F"):
+                if (self.state_enemy[1] + 50 <= self.max_position_y):
 
-                index = 0
-                while index < 50:
-                    self.current_position_enemy[1] -= 1
-                    self.render(mode="human")
-                    index += 1
-            else:
-                pass
+                    index = 0
 
-        elif (action == "R"):
-            if (self.current_position_enemy[0] + 50 <= self.max_position_x):
-
-                index = 0
-                while index < 50:
-                    self.current_position_enemy[0] += 1
-                    self.render(mode="human")
-                    index += 1
-            else:
-                pass
-
-        elif (action == "L"):
-            if (self.current_position_enemy[0] - 50 >= self.min_position_x):
-
-                index = 0
-                while index < 50:
-                    self.current_position_enemy[0] -= 1
-                    self.render(mode="human")
-                    index += 1
-            else:
-                pass
+                    #dit werkt precies niet echt? bij het opvragen van de position zie je dat hij per 50 verspringt
+                    while index < 50:
+                        self.state_enemy[1] += 1
+                        index +=1
+                        # self.render()
+                    self.done = self._check_done()
+                    return self.state_enemy, self.reward, self.done, self.info
 
 
-        elif (action == "S"):
-            self.current_position_friendly = self.current_position_friendly
-            self.current_position_enemy = self.current_position_enemy
+                else:
+                    # opmerking moet ik hier ook iets doen zodat de reward naar 0 Gaat ofzo en hij dus niet achteruit zal gaan??
+                    pass
 
-        self.render(mode="human")
+            elif (action == "B"):
+                if (self.state_enemy[1] - 50 >= self.min_position_y):
 
-        return self.observation, self.reward, self.done, self.info
+                    index = 0
+                    while index < 50:
+                        self.state_enemy[1] -= 1
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_enemy, self.reward, self.done, self.info
+
+                else:
+                    pass
+
+            elif (action == "R"):
+                if (self.state_enemy[0] + 50 <= self.max_position_x):
+
+                    index = 0
+                    while index < 50:
+                        self.state_enemy[0] += 1
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_enemy, self.reward, self.done, self.info
+
+
+                else:
+                    pass
+
+            elif (action == "L"):
+
+                if (self.state_enemy[0] - 50 >= self.min_position_x):
+
+                    index = 0
+                    while index < 50:
+                        self.state_enemy[0] -= 1
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_enemy, self.reward, self.done, self.info
+
+
+                else:
+                    pass
+
+
+            elif (action == "S"):
+
+                self.state_enemy = self.state_enemy
+                self.done = self._check_done()
+                return self.state_enemy, self.reward, self.done, self.info
+
+
+        elif agent == "friendly":
+
+            if (action == "F"):
+                if (self.state_friendly[1] + 50 <= self.max_position_y):
+                    index = 0
+                    while index < 50:
+                        self.state_friendly[1] += 1
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_friendly, self.reward, self.done, self.info
+
+                else:
+                    # opmerking moet ik hier ook iets doen zodat de reward naar 0 Gaat ofzo en hij dus niet achteruit zal gaan??
+                    pass
+
+            elif (action == "B"):
+                if (self.state_friendly[1] - 50 >= self.min_position_y):
+
+                    index = 0
+                    while index < 50:
+                        self.state_friendly[1] -= 1
+                        # self.render(mode="human")
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_friendly, self.reward, self.done, self.info
+                else:
+                    pass
+
+            elif (action == "R"):
+                if (self.state_friendly[0] + 50 <= self.max_position_x):
+
+                    index = 0
+                    while index < 50:
+                        self.state_friendly[0] += 1
+                        # self.render(mode="human")
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_friendly, self.reward, self.done, self.info
+
+                else:
+                    pass
+
+            elif (action == "L"):
+                if (self.state_friendly[0] - 50 >= self.min_position_x):
+
+                    index = 0
+                    while index < 50:
+                        self.state_friendly[0] -= 1
+                        # self.render(mode="human")
+                        index += 1
+
+                    self.done = self._check_done()
+                    return self.state_friendly, self.reward, self.done, self.info
+
+                else:
+                    pass
+
+
+            elif (action == "S"):
+
+                self.done = self._check_done()
+                self.state_friendly = self.state_friendly
+                return self.state_friendly, self.reward, self.done, self.info
+                # self.render(mode="human")
+
+
+
+        else:
+            pass
+
+        # return self.state_friendly, self.reward, self.done, self.info
 
 
 
     def reset(self):
 
-        self.current_position_enemy = [350, 350]
-        self.current_position_friendly = [350, 100]
+        self.state_enemy = [350, 350]
+        self.state_friendly = [350, 100]
 
         self.done = False
+        self.viewer = None
 
 
     def render(self, mode='human'):
+
         screen_width = 700
         screen_height = 700
 
 
         if self.viewer is None:
-            from gym.envs.classic_control import rendering
+
             self.viewer = rendering.Viewer(screen_width, screen_height)
 
             #GRID (static)
@@ -239,15 +357,14 @@ class RoombaEnv(gym.Env):
 
 
 
-        self.roombatrans_enemy.set_translation(self.current_position_enemy[0], self.current_position_enemy[1])
-        self.roombatrans_friendly.set_translation(self.current_position_friendly[0], self.current_position_friendly[1])
+        self.roombatrans_enemy.set_translation(self.state_enemy[0], self.state_enemy[1])
+        self.roombatrans_friendly.set_translation(self.state_friendly[0], self.state_friendly[1])
 
-
-
-        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
+        return self.viewer.render()
 
 
     def close(self):
+
         if self.viewer:
             self.viewer.close()
             self.viewer = None
