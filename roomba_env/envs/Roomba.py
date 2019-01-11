@@ -1,5 +1,7 @@
 import gym
 import random
+import pyglet
+import math
 from gym.envs.classic_control import rendering
 
 
@@ -9,7 +11,7 @@ from gym.envs.classic_control import rendering
 #                                                                                                                   |
 #agents spawn at a fixed place                                                                                      |
 #                                                                                                                   |
-#goal of game: green agent should get at the top of the grid before the red agent is able to occupy its position    |
+#goal of game: green agent should get at the top of the grid before the red agent is able to occupy it's position   |
 #                                                                                                                   |
 #actionspace= 5 (forward,backwards,left,right,stay)                                                                 |
 #action space = 3 on the edge of the grid (agent is not allowed to leave it)                                        |
@@ -40,6 +42,8 @@ class RoombaEnv(gym.Env):
 
         self.viewer = None
 
+        self.episodes = 0
+
         self.state_enemy = [350,350]
         self.state_friendly = [350,100]
 
@@ -58,7 +62,15 @@ class RoombaEnv(gym.Env):
 
         return len(self.ACTION_ENEMY)
 
-    def action_space_sample(self, agent):
+    def _position_to_id(self, pos):
+
+        #toch nog eens checken of dit wel klopt! (van mijn q value tabel was precies enkel de eerste ingevuld)
+        return int(pos[0]/50 + (round(pos[1] / 100)-1)* 11 -1)
+
+    def _id_top_position(self, id):
+        pass
+
+    def legal_actions(self, agent):
 
 
         if(agent == "enemy"):
@@ -67,127 +79,109 @@ class RoombaEnv(gym.Env):
         #check of ze op de rand staan ofniet (en dus niet uit de grid proberen te rijden)
 
             if (self.state_enemy[1] == 100 and self.state_enemy[0] != 100 and self.state_enemy[0] != 600):
-                self.ACTION_ENEMY = ["F", "L", "R", "S"]
-                self.info = [self.ACTION_ENEMY, "beneden"]
-                number = random.randint(0, 3)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [0, 2, 3, 4]
+                return self.ACTION_ENEMY
+
 
             elif(self.state_enemy[1] == 600 and self.state_enemy[0] != 100 and self.state_enemy[0] != 600):
 
-                self.ACTION_ENEMY = ["B", "R", "L", "S"]
-                self.info = [self.ACTION_ENEMY, "boven"]
-                number = random.randint(0,3)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [1, 2, 3, 4]
+                return self.ACTION_ENEMY
+
 
             elif(self.state_enemy[0] == 100 and self.state_enemy[1] != 100 and self.state_enemy[1] != 600):
-                self.ACTION_ENEMY = ["F", "B", "R", "S"]
-                self.info = [self.ACTION_ENEMY, "links"]
-                number = random.randint(0,3)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [0, 1, 3, 4]
+                return self.ACTION_ENEMY
+
 
             elif(self.state_enemy[0] == 600 and self.state_enemy[1] != 100 and self.state_enemy[1] != 600):
-                self.ACTION_ENEMY = ["F", "B", "L", "S"]
-                self.info = [self.ACTION_ENEMY, "rechts"]
-                number = random.randint(0,3)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [0, 1, 2, 4]
+                return self.ACTION_ENEMY
+
 
 
             elif(self.state_enemy == [100,100]):
 
-                self.ACTION_ENEMY = ["F", "R", "S"]
-                self.info = [self.ACTION_ENEMY, "benedenlinks"]
-                number = random.randint(0, 2)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [0, 3, 4]
+                return self.ACTION_ENEMY
+
 
             elif (self.state_enemy == [100,600] ):
 
-                self.ACTION_ENEMY = ["B", "R", "S"]
-                self.info = [self.ACTION_ENEMY, "bovenlinks"]
-                number = random.randint(0, 2)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [1, 3, 4]
+                return self.ACTION_ENEMY
+
 
 
             elif(self.state_enemy == [600,100]):
 
-                self.ACTION_ENEMY = ["F", "L", "S"]
-                self.info = [self.ACTION_ENEMY, "benedenrechts"]
-                number = random.randint(0, 2)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [0, 2, 4]
+                return self.ACTION_ENEMY
+
 
             elif(self.state_enemy == [600,600]):
-                self.ACTION_ENEMY = ["B", "L", "S"]
-                self.info = [self.ACTION_ENEMY, "bovenrechts"]
-                number = random.randint(0, 2)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [1, 2, 4]
+                return self.ACTION_ENEMY
+
 
             else:
-                self.ACTION_ENEMY = ["F", "B", "L", "R", "S"]
-                self.info = [self.ACTION_ENEMY, "niet speciaal"]
-                number = random.randint(0,4)
-                return self.ACTION_ENEMY[number]
+                self.ACTION_ENEMY = [0, 1, 2, 3, 4]
+                return self.ACTION_ENEMY
 
 
-        if(agent == "friendly"):
+
+        elif(agent == "friendly"):
 
             if (self.state_friendly[1] == 100 and self.state_friendly[0] != 100 and self.state_friendly[0] != 600):
-                self.ACTION_FRIENDLY = ["F", "L", "R", "S"]
-                self.info = [self.ACTION_FRIENDLY, "beneden"]
-                number = random.randint(0, 3)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [0, 2, 3, 4]
+                return self.ACTION_FRIENDLY
+
 
             elif(self.state_friendly[1] == 600 and self.state_friendly[0] != 100 and self.state_friendly[0] != 600):
 
-                self.ACTION_FRIENDLY = ["B", "R", "L", "S"]
-                self.info = [self.ACTION_FRIENDLY, "boven"]
-                number = random.randint(0,3)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [1, 2, 3, 4]
+                return self.ACTION_FRIENDLY
+
 
             elif(self.state_friendly[0] == 100 and self.state_friendly[1] != 100 and self.state_friendly[1] != 600):
-                self.ACTION_FRIENDLY = ["F", "B", "R", "S"]
-                self.info = [self.ACTION_FRIENDLY, "links"]
-                number = random.randint(0,3)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [0, 1, 3, 4]
+                return self.ACTION_FRIENDLY
+
 
             elif(self.state_friendly[0] == 600 and self.state_friendly[1] != 100 and self.state_friendly[1] != 600):
-                self.ACTION_FRIENDLY = ["F", "B", "L", "S"]
-                self.info = [self.ACTION_FRIENDLY, "rechts"]
-                number = random.randint(0,3)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [0, 1, 2, 4]
+                return self.ACTION_FRIENDLY
+
 
 
             elif(self.state_friendly == [100,100]):
 
-                self.ACTION_FRIENDLY = ["F", "R", "S"]
-                self.info = [self.ACTION_FRIENDLY, "benedenlinks"]
-                number = random.randint(0, 2)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [0, 3, 4]
+                return self.ACTION_FRIENDLY
+
 
             elif (self.state_friendly == [100,600] ):
 
-                self.ACTION_FRIENDLY = ["B", "R", "S"]
-                self.info = [self.ACTION_FRIENDLY, "bovenlinks"]
-                number = random.randint(0, 2)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [1, 3, 4]
+                return self.ACTION_FRIENDLY
+
 
 
             elif(self.state_friendly == [600,100]):
 
-                self.ACTION_FRIENDLY = ["F", "L", "S"]
-                self.info = [self.ACTION_FRIENDLY, "benedenrechts"]
-                number = random.randint(0, 2)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [0, 2, 4]
+                return self.ACTION_FRIENDLY
+
 
             elif(self.state_friendly == [600,600]):
-                self.ACTION_FRIENDLY = ["B", "L", "S"]
-                self.info = [self.ACTION_FRIENDLY, "bovenrechts"]
-                number = random.randint(0, 2)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [1, 2, 4]
+                return self.ACTION_FRIENDLY
+
 
             else:
-                self.ACTION_FRIENDLY = ["F", "B", "L", "R", "S"]
-                self.info = [self.ACTION_FRIENDLY, "niet speciaal"]
-                number = random.randint(0,4)
-                return self.ACTION_FRIENDLY[number]
+                self.ACTION_FRIENDLY = [0, 1, 2, 3, 4]
+                return self.ACTION_FRIENDLY
+
 
 
 
@@ -202,14 +196,12 @@ class RoombaEnv(gym.Env):
 
     def _check_done(self):
 
-        #sommige scenarios: ene agent krijgt done binnen & reset. Door deze directe reset krijgt de andere agent nooit done binnen
-        #en doet hij gewoon verder
 
         self.done = bool(self.state_friendly[1] == 600 or self.state_enemy == self.state_friendly or self.state_friendly == self.state_enemy)
         return self.done
 
 
-    def _check_reward(self):
+    def _check_reward(self,agent):
 
 
         #dit klopt nog niet helemaal heb ik het gevoel
@@ -227,17 +219,23 @@ class RoombaEnv(gym.Env):
             self.reward_friendly += 100
             self.reward_enemy -= 100
 
-        #mss een elif die checkt hoe dicht de twee roombas bij elkaar zijn?
 
         else:
+            if(agent == "enemy"):
+                euclidean_distance = math.sqrt((self.state_friendly[0] - self.state_enemy[0]) ** 2 + (self.state_friendly[1] - self.state_enemy[1]) ** 2)
+                self.reward_enemy -= 0.001 * euclidean_distance
+                # print(euclidean_distance)
+            else:
+                distance = 600 - self.state_friendly[1]
+                self.reward_friendly -= 0.001 * distance
+                # print(distance)
 
-            self.reward_enemy = self.reward_enemy
-            self.reward_friendly = self.reward_friendly
+
 
         return self.reward_friendly, self.reward_enemy
 
 
-    def step(self,action, agent):
+    def step(self, action, agent, render):
 
         if(agent == "enemy"):
 
@@ -247,32 +245,38 @@ class RoombaEnv(gym.Env):
                     index = 0
                     while index < 50:
                         self.state_enemy[1] += 1
+                        if render:
+                            self.render()
                         index +=1
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_enemy, self.reward[1], self.done, self.info
+                    self.reward = self._check_reward("enemy")
+                    return self._position_to_id(self.state_enemy), self.reward[1], self._position_to_id(self.state_friendly), self.done, self.info
 
             elif (action == "B"):
 
                     index = 0
                     while index < 50:
                         self.state_enemy[1] -= 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_enemy, self.reward[1], self.done, self.info
+                    self.reward = self._check_reward("enemy")
+                    return self._position_to_id(self.state_enemy), self.reward[1],self._position_to_id(self.state_friendly), self.done, self.info
 
             elif (action == "R"):
 
                     index = 0
                     while index < 50:
                         self.state_enemy[0] += 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_enemy, self.reward[1], self.done, self.info
+                    self.reward = self._check_reward("enemy")
+                    return self._position_to_id(self.state_enemy), self.reward[1],self._position_to_id(self.state_friendly), self.done, self.info
 
 
             elif (action == "L"):
@@ -280,18 +284,22 @@ class RoombaEnv(gym.Env):
                     index = 0
                     while index < 50:
                         self.state_enemy[0] -= 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_enemy, self.reward[1], self.done, self.info
+                    self.reward = self._check_reward("enemy")
+                    return self._position_to_id(self.state_enemy), self.reward[1], self._position_to_id(self.state_friendly), self.done, self.info
 
             elif (action == "S"):
 
                 self.state_enemy = self.state_enemy
+                if render:
+                    self.render()
                 self.done = self._check_done()
-                self.reward = self._check_reward()
-                return self.state_enemy, self.reward[1], self.done, self.info
+                self.reward = self._check_reward("enemy")
+                return self._position_to_id(self.state_enemy), self.reward[1],self._position_to_id(self.state_friendly), self.done, self.info
 
 
         elif agent == "friendly":
@@ -301,51 +309,61 @@ class RoombaEnv(gym.Env):
                     index = 0
                     while index < 50:
                         self.state_friendly[1] += 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_friendly, self.reward[1], self.done, self.info
+                    self.reward = self._check_reward("friendly")
+                    return self._position_to_id(self.state_friendly), self.reward[0], self._position_to_id(self.state_enemy), self.done, self.info
 
             elif (action == "B"):
 
                     index = 0
                     while index < 50:
                         self.state_friendly[1] -= 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_friendly, self.reward[0], self.done, self.info
+                    self.reward = self._check_reward("friendly")
+                    return self._position_to_id(self.state_friendly), self.reward[0],self._position_to_id(self.state_enemy), self.done, self.info
 
             elif (action == "R"):
 
                     index = 0
                     while index < 50:
                         self.state_friendly[0] += 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_friendly, self.reward[0], self.done, self.info
+                    self.reward = self._check_reward("friendly")
+                    return self._position_to_id(self.state_friendly), self.reward[0],self._position_to_id(self.state_enemy), self.done, self.info
 
             elif (action == "L"):
 
                     index = 0
                     while index < 50:
                         self.state_friendly[0] -= 1
+                        if render:
+                            self.render()
                         index += 1
 
                     self.done = self._check_done()
-                    self.reward = self._check_reward()
-                    return self.state_friendly, self.reward[0], self.done, self.info
+                    self.reward = self._check_reward("friendly")
+                    return self._position_to_id(self.state_friendly), self.reward[0],self._position_to_id(self.state_enemy), self.done, self.info
 
             elif (action == "S"):
 
                 self.state_friendly = self.state_friendly
+                if render:
+                    self.render()
                 self.done = self._check_done()
-                self.reward = self._check_reward()
-                return self.state_friendly, self.reward[0], self.done, self.info
+                self.reward = self._check_reward("friendly")
+                return self._position_to_id(self.state_friendly), self.reward[0],self._position_to_id(self.state_enemy), self.done, self.info
 
 
     def reset(self):
@@ -360,9 +378,13 @@ class RoombaEnv(gym.Env):
         self.reward_friendly = 0.0
         self.reward_enemy = 0.0
 
+        self.episodes += 1
+
         self.info = {}
 
         self.done = False
+
+        return self._position_to_id(self.state_enemy), self._position_to_id(self.state_friendly)
 
 
     def render(self, mode='human'):
@@ -420,9 +442,14 @@ class RoombaEnv(gym.Env):
             self.roomba_friendly.add_attr(self.roombatrans_friendly)
 
             self.viewer.add_geom(self.roomba_friendly)
+            episodes = "Number of episodes: {0}".format(self.episodes)
 
+        self.score_label = pyglet.text.Label('0000', font_size=36,
+                                                 x=350, y=350, anchor_x='left', anchor_y='center',
+                                                 color=(255, 255, 255, 255))
 
-
+        self.score_label.text = "test"
+        self.score_label.draw()
 
         self.roombatrans_enemy.set_translation(self.state_enemy[0], self.state_enemy[1])
         self.roombatrans_friendly.set_translation(self.state_friendly[0], self.state_friendly[1])
