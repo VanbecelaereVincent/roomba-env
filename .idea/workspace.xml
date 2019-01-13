@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="8199b78b-fe82-42be-9624-b2c200cf3e88" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roomba_env.egg-info/SOURCES.txt" beforeDir="false" afterPath="$PROJECT_DIR$/roomba_env.egg-info/SOURCES.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roomba_env.egg-info/dependency_links.txt" beforeDir="false" afterPath="$PROJECT_DIR$/roomba_env.egg-info/dependency_links.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roomba_env.egg-info/requires.txt" beforeDir="false" afterPath="$PROJECT_DIR$/roomba_env.egg-info/requires.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roomba_env.egg-info/top_level.txt" beforeDir="false" afterPath="$PROJECT_DIR$/roomba_env.egg-info/top_level.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/roomba_env/envs/Roomba.py" beforeDir="false" afterPath="$PROJECT_DIR$/roomba_env/envs/Roomba.py" afterDir="false" />
-    </list>
+    <list default="true" id="8199b78b-fe82-42be-9624-b2c200cf3e88" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -26,12 +19,12 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
-          <entry key="py" value="6" />
+          <entry key="py" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
-          <entry key="Python" value="6" />
+          <entry key="Python" value="10" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
@@ -51,8 +44,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/roomba_env/envs/Roomba.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1228">
-              <caret line="301" column="109" lean-forward="true" selection-start-line="301" selection-start-column="109" selection-end-line="301" selection-end-column="109" />
+            <state relative-caret-position="344">
+              <caret line="453" column="25" selection-start-line="453" selection-start-column="25" selection-end-line="453" selection-end-column="25" />
               <folding>
                 <element signature="e#0#10#0" expanded="true" />
                 <marker date="1547221977879" expanded="true" signature="2596:2777" ph="..." />
@@ -74,6 +67,7 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>current</find>
+      <find>print</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -125,7 +119,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../Real Life Execution" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -230,10 +224,22 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/../Reinforcement model test/model_enemy.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Reinforcement model test/model_friendly.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Reinforcement model test/openai_gym_test.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../Reinforcement model test/test.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/roomba_env/envs/Roomba.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1228">
-          <caret line="301" column="109" lean-forward="true" selection-start-line="301" selection-start-column="109" selection-end-line="301" selection-end-column="109" />
+        <state relative-caret-position="344">
+          <caret line="453" column="25" selection-start-line="453" selection-start-column="25" selection-end-line="453" selection-end-column="25" />
           <folding>
             <element signature="e#0#10#0" expanded="true" />
             <marker date="1547221977879" expanded="true" signature="2596:2777" ph="..." />
