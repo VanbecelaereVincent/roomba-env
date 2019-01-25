@@ -14,7 +14,7 @@ from gym.envs.classic_control import rendering
 #goal of game: green agent should get at the top of the grid before the red agent is able to occupy it's position   |
 #                                                                                                                   |
 #actionspace= 5 (forward,backwards,left,right,stay)                                                                 |
-#action space = 3 on the edge of the grid (agent is not allowed to leave it)                                        |
+#action space = 4 on the edge of the grid (agent is not allowed to leave it)                                        |
 #action space = 3 on the very outer junctions of the grid (agent is not allowed to leave it)                        |
 #state_space = 121 (every junction of the grid)                                                                     |
 #                                                                                                                   |
@@ -28,7 +28,7 @@ class RoombaEnv(gym.Env):
     }
 
 
-    #nog een 5e niet zo straight forward actie toevoegd: robot mag blijven staan (="S")
+
 
     def __init__(self):
 
@@ -49,7 +49,7 @@ class RoombaEnv(gym.Env):
 
         self.done = False
 
-        #informatie die ik meegeef bij het nemen van een stap die goed is voor debugging
+
         self.info = {}
 
         self.reward_friendly = 0.0
@@ -71,6 +71,7 @@ class RoombaEnv(gym.Env):
         pass
 
     def legal_actions(self, agent):
+
 
 
         if(agent == "enemy"):
@@ -182,9 +183,6 @@ class RoombaEnv(gym.Env):
                 self.ACTION_FRIENDLY = [0, 1, 2, 3, 4]
                 return self.ACTION_FRIENDLY
 
-
-
-
     def state_space(self):
 
         return 121
@@ -193,52 +191,46 @@ class RoombaEnv(gym.Env):
 
         return self.agents
 
-
     def _check_done(self):
-
 
         self.done = bool(self.state_friendly[1] == 600 or self.state_enemy == self.state_friendly or self.state_friendly == self.state_enemy)
         return self.done
 
-
     def _check_reward(self,agent):
 
 
-        #dit klopt nog niet helemaal heb ik het gevoel
-
-        # verdediger: krijgt -100 als de andere de overkant haalt, krijgt + 100 als hij op de positie van de andere graakt
-        #aanvaller: krijgt + 100 als hij de overkant haalt: krijgt -100 als de andere roomba op hem rijdt
 
         if(self.state_friendly == self.state_enemy):
 
-            self.reward_friendly -=100
-            self.reward_enemy +=100
+            self.reward_friendly -=1000
+            self.reward_enemy += 1000
 
         elif(self.state_friendly[1] == 600):
 
-            self.reward_friendly += 100
-            self.reward_enemy -= 100
-
+            self.reward_friendly += 1000
+            self.reward_enemy -= 1000
 
         else:
             if(agent == "enemy"):
-                euclidean_distance = math.sqrt((self.state_friendly[0] - self.state_enemy[0]) ** 2 + (self.state_friendly[1] - self.state_enemy[1]) ** 2)
-                self.reward_enemy -= 0.001 * euclidean_distance
-                # print(euclidean_distance)
+                euclidean_distance_to_friendly = math.sqrt((self.state_friendly[0] - self.state_enemy[0]) ** 2 + (self.state_friendly[1] - self.state_enemy[1]) ** 2)
+                self.reward_enemy -= 0.005 * math.pow(euclidean_distance_to_friendly,3)
+                if(self.state_enemy[1] < self.state_friendly[1]):
+                    self.reward_enemy -= 1000
+            # print(euclidean_distance)
             else:
-                distance = 600 - self.state_friendly[1]
-                self.reward_friendly -= 0.001 * distance
+                distance_to_victory = 600 - self.state_friendly[1]
+                euclidean_distance_to_enemy = math.sqrt((self.state_friendly[0] - self.state_enemy[0]) ** 2 + (self.state_friendly[1] - self.state_enemy[1]) ** 2)
+                self.reward_friendly -= 0.004 * distance_to_victory
+                self.reward_friendly += euclidean_distance_to_enemy * 0.001
+                if(euclidean_distance_to_enemy == 50):
+                    self.reward_friendly -= 1000
                 # print(distance)
 
-
-
         return self.reward_friendly, self.reward_enemy
-
 
     def step(self, action, agent, render):
 
         if(agent == "enemy"):
-
 
             if(action == "F"):
 
@@ -278,7 +270,6 @@ class RoombaEnv(gym.Env):
                     self.reward = self._check_reward("enemy")
                     return self._position_to_id(self.state_enemy), self.reward[1],self._position_to_id(self.state_friendly), self.done, self.info
 
-
             elif (action == "L"):
 
                     index = 0
@@ -300,7 +291,6 @@ class RoombaEnv(gym.Env):
                 self.done = self._check_done()
                 self.reward = self._check_reward("enemy")
                 return self._position_to_id(self.state_enemy), self.reward[1],self._position_to_id(self.state_friendly), self.done, self.info
-
 
         elif agent == "friendly":
 
@@ -365,7 +355,6 @@ class RoombaEnv(gym.Env):
                 self.reward = self._check_reward("friendly")
                 return self._position_to_id(self.state_friendly), self.reward[0],self._position_to_id(self.state_enemy), self.done, self.info
 
-
     def reset(self):
 
         self.state_enemy = [350, 350]
@@ -386,12 +375,10 @@ class RoombaEnv(gym.Env):
 
         return self._position_to_id(self.state_enemy), self._position_to_id(self.state_friendly)
 
-
     def render(self, mode='human'):
 
         screen_width = 700
         screen_height = 700
-
 
         if self.viewer is None:
 
@@ -455,7 +442,6 @@ class RoombaEnv(gym.Env):
         self.roombatrans_friendly.set_translation(self.state_friendly[0], self.state_friendly[1])
 
         return self.viewer.render()
-
 
     def close(self):
 
