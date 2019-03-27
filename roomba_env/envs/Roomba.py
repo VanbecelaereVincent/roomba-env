@@ -198,26 +198,30 @@ class RoombaEnv(gym.Env):
 
     def _check_reward(self,agent):
 
-
+        self.reward_enemy = 0
+        self.reward_friendly = 0
 
         if(self.state_friendly == self.state_enemy):
 
-            self.reward_friendly -=1000
-            self.reward_enemy += 1000
+            self.reward_enemy = 1000
+            self.reward_friendly = -1000
+
 
         elif(self.state_friendly[1] == 600):
 
-            self.reward_friendly += 1000
-            self.reward_enemy -= 1000
+            self.reward_enemy = -1000
+            self.reward_friendly = 1000
 
         else:
             if(agent == "enemy"):
+
                 euclidean_distance_to_friendly = math.sqrt((self.state_friendly[0] - self.state_enemy[0]) ** 2 + (self.state_friendly[1] - self.state_enemy[1]) ** 2)
                 self.reward_enemy -= 0.005 * math.pow(euclidean_distance_to_friendly,3)
                 if(self.state_enemy[1] < self.state_friendly[1]):
                     self.reward_enemy -= 1000
             # print(euclidean_distance)
             else:
+
                 distance_to_victory = 600 - self.state_friendly[1]
                 euclidean_distance_to_enemy = math.sqrt((self.state_friendly[0] - self.state_enemy[0]) ** 2 + (self.state_friendly[1] - self.state_enemy[1]) ** 2)
                 self.reward_friendly -= 0.004 * distance_to_victory
